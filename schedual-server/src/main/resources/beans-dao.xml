@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:task="http://www.springframework.org/schema/task"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+           http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+           http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+	
+    
+    <!-- mybatis配置 -->
+    <bean id="datasource" class="org.apache.commons.dbcp.BasicDataSource">
+    	<property name="driverClassName" value="${db.driverClassName}" />      
+	  	<property name="url" value="${db.url}" />      
+	    <property name="username" value="${db.username}" />      
+	    <property name="password" value="${db.password}" />
+	    <!--maxActive: 最大连接数量-->    
+        <property name="maxActive" value="${db.maxActive}"/>  
+        <!--minIdle: 最小空闲连接-->    
+        <property name="minIdle" value="${db.minIdle}"/>  
+        <!--maxIdle: 最大空闲连接-->    
+        <property name="maxIdle" value="${db.maxIdle}"/>  
+        <!--initialSize: 初始化连接-->    
+        <property name="initialSize" value="${db.initilSize}"/>
+        <!-- 连接被泄露时是否打印 -->  
+        <property name="logAbandoned" value="true"/>  
+        <!--removeAbandoned: 是否自动回收超时连接-->    
+        <property name="removeAbandoned"  value="true"/> 
+        <!--maxWait: 超时等待时间以毫秒为单位 1000等于60秒-->  
+        <property name="maxWait" value="1000"/>  
+     </bean>
+     
+     <bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+     	<property name="dataSource" ref="datasource"></property>
+     	<property name="typeAliasesPackage" value="org.schedual.server.dao.tkset.entity"></property>
+     	<property name="mapperLocations">
+     		 <list>
+                <value>classpath:mapper/taskMapper.xml</value>
+                <value>classpath:mapper/taskServiceMapper.xml</value>
+            </list>
+     	</property>
+     </bean>
+     
+     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+     		<property name="basePackage" value="org.schedual.server.dao.tkset"></property>
+     		<property name="sqlSessionFactoryBeanName" value="sessionFactory"></property>
+     </bean>
+     
+    
+</beans>

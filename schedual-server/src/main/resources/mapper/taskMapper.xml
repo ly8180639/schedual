@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.schedual.server.dao.tkset.TaskDao">
+    <select id="findCount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(*) from tk_schedule_task where status=#{status}
+    </select>
+    
+    <select id="findAllCount" resultType="java.lang.Integer">
+        select count(*) from tk_schedule_task
+    </select>
+    
+    
+     <!-- 查询所有可用的任务 -->
+	 <select id="findAvailableTask" resultType="task">
+	 	select * from tk_schedule_task where status=1
+	 </select>
+	 
+	 
+	 <!-- 根据taskid获取具体任务 -->
+	 <select id="findTaskByTaskId" resultType="task">
+	 	select * from tk_schedule_task where taskid=#{taskid} limit 0,1
+	 </select>
+	     
+    <!-- 新增任务 -->
+    <insert id="saveTask" useGeneratedKeys="true" keyProperty="id"  parameterType="task">
+    	insert into tk_schedule_task(`clientid`, `taskid`,`service`, `status`, `rate_minutes`, `rate_hours`, `rate_days`, `rate_weeks`, `rate_months`, `executetime`, `year`,`month`,`week`,`day`,`hour`,`minute`, `fix_range_minutes`, `fix_range_hours`, `fix_range_days`, `fix_range_weeks`, `fix_range_month`, `range_starttime`, `range_endtime`,`create_type`, `createtime`)
+    	values(#{clientid}, #{taskid},#{service}, #{status}, #{rate_minutes}, #{rate_hours}, #{rate_days}, #{rate_weeks}, #{rate_months}, #{executetime}, #{year},#{month},#{week},#{day},#{hour},#{minute}, #{fix_range_minutes}, #{fix_range_hours}, #{fix_range_days}, #{fix_range_weeks}, #{fix_range_month}, #{range_starttime}, #{range_endtime},#{createType},now())
+    </insert>
+    
+    
+    <update id="updateTaskStatus">
+    	update tk_schedule_task set status=#{state} where id=#{id}
+    </update>
+    
+    <update id="updateExpiredTasks" parameterType="java.util.List">
+    	update tk_schedule_task set status=2 where id IN
+    	<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>    
+    </update>
+    
+    
+    
+    <update id="updateTaskById" parameterType="task">
+    	UPDATE tk_schedule_task 
+		SET 
+		  clientid = #{clientid},
+		  taskid = #{taskid},
+		  service = #{service},
+		  status = #{status},
+		  rate_minutes = #{rate_minutes},
+		  rate_hours = #{rate_hours},
+		  rate_days = #{rate_days},
+		  rate_weeks = #{rate_weeks},
+		  rate_months = #{rate_months},
+		  executetime = #{executetime},
+		  year = #{year},
+		  month = #{month},
+		  week = #{week},
+		  day = #{day},
+		  hour = #{hour},
+		  minute = #{minute},
+		  fix_range_minutes = #{fix_range_minutes},
+		  fix_range_hours = #{fix_range_hours},
+		  fix_range_days = #{fix_range_days},
+		  fix_range_weeks = #{fix_range_weeks},
+		  fix_range_month = #{fix_range_month},
+		  range_starttime = #{range_starttime},
+		  range_endtime = #{range_endtime} 
+		  WHERE id = #{id}
+    </update>
+    
+    
+    <update id="updateTaskTimeById" parameterType="task">
+    	UPDATE tk_schedule_task 
+		SET
+		  status=#{status}, 
+		  year = #{year},
+		  month = #{month},
+		  week = #{week},
+		  day = #{day},
+		  hour = #{hour},
+		  minute = #{minute}
+		  WHERE id = #{id}
+    </update>
+    
+    
+    <!-- 逻辑删除task -->    
+    <update id="delTaskByTaskId" parameterType="java.lang.String">
+    	update tk_schedule_task set status=3 where taskid=#{taskid}
+    </update>
+    
+    <select id="findIdByTaskId" resultType="java.lang.Integer" parameterType="java.lang.String">
+    	select id from tk_schedule_task where taskid=#{taskid}
+    </select>
+    
+      <!-- 查询所有可用的任务 -->
+	 <select id="findPerCountTasks" resultType="task">
+	 	select * from tk_schedule_task where status=1 and (range_endtime IS NULL OR range_endtime>NOW()) limit #{start},#{count}
+	 </select>
+ 
+ 	<!-- 查询数量 -->
+ 	<select id="findCountByPage" resultType="java.lang.Integer" parameterType="org.schedual.server.controller.in.TaskInfo">
+ 		select count(*) from tk_schedule_task 
+ 		<where>
+ 			<if test="status!=null and status !=''">
+ 				status=#{status}
+ 			</if>
+ 			<!-- 频率相关的条件 -->
+ 			<if test="rate_minutes !=null and rate_minutes !=''">
+ 				rate_minutes=#{rate_minutes}
+ 			</if>
+ 			<if test="rate_hours !=null and rate_hours !=''">
+ 				rate_hours=#{rate_hours}
+ 			</if>
+ 			<if test="rate_days !=null and rate_days !=''">
+ 				rate_days=#{rate_days}
+ 			</if>
+ 			<if test="rate_weeks !=null and rate_weeks !=''">
+ 				rate_weeks=#{rate_weeks}
+ 			</if>
+ 			<if test="rate_months !=null and rate_months !=''">
+ 				rate_months=#{rate_months}
+ 			</if>
+ 			<!-- 定点相关的条件 -->
+ 			<if test="minute !=null and minute !='' and minute !='*'">
+ 				minute=#{minute}
+ 			</if>
+ 			<if test="hour !=null and hour !='' and hour !='*'">
+ 				hour=#{hour}
+ 			</if>
+ 			<if test="day !=null and day !='' and day !='*'">
+ 				day=#{day}
+ 			</if>
+ 			<if test="week !=null and week !='' and week !='*'">
+ 				week=#{week}
+ 			</if>
+ 			<if test="month !=null and month !='' and month !='*'">
+ 				month=#{month}
+ 			</if>
+ 		</where> 
+ 	</select>
+ 	<!-- 分页查询列表-->
+ 	<select id="findTasksByPage" resultType="task"  parameterType="org.schedual.server.controller.in.TaskInfo">
+ 		select * from tk_schedule_task 
+ 		<where>
+ 			<if test="status!=null and status !=''">
+ 				status=#{status}
+ 			</if>
+ 			<!-- 频率相关的条件 -->
+ 			<if test="rate_minutes !=null and rate_minutes !=''">
+ 				rate_minutes=#{rate_minutes}
+ 			</if>
+ 			<if test="rate_hours !=null and rate_hours !=''">
+ 				rate_hours=#{rate_hours}
+ 			</if>
+ 			<if test="rate_days !=null and rate_days !=''">
+ 				rate_days=#{rate_days}
+ 			</if>
+ 			<if test="rate_weeks !=null and rate_weeks !=''">
+ 				rate_weeks=#{rate_weeks}
+ 			</if>
+ 			<if test="rate_months !=null and rate_months !=''">
+ 				rate_months=#{rate_months}
+ 			</if>
+ 			<!-- 定点相关的条件 -->
+ 			<if test="minute !=null and minute !='' and minute !='*'">
+ 				minute=#{minute}
+ 			</if>
+ 			<if test="hour !=null and hour !='' and hour !='*'">
+ 				hour=#{hour}
+ 			</if>
+ 			<if test="day !=null and day !='' and day !='*'">
+ 				day=#{day}
+ 			</if>
+ 			<if test="week !=null and week !='' and week !='*'">
+ 				week=#{week}
+ 			</if>
+ 			<if test="month !=null and month !='' and month !='*'">
+ 				month=#{month}
+ 			</if>
+ 		</where>
+ 		<if test="sortKey !=null and sortKey!=''">
+ 			order by ${sortKey} 
+ 			<if test="sortDirect !=null and sortDirect!=''">
+ 			 	 ${sortDirect}
+ 			</if>
+ 		</if> 
+ 	</select>
+ 	
+ 	<!-- 迁移数据，保存标签 -->
+ 	
+ 	<insert id="saveTag"  useGeneratedKeys="true" keyProperty="id" parameterType="java.util.Map">
+		 INSERT INTO `tk_my_tag` (`corp_id`, `user_id`, `type`, `color`, `tag_name`, `update_user_id`, `update_time`) VALUES 
+		 (#{corpId}, #{userid}, #{type}, #{tagColor},#{tagName}, 'liuyang', now());	
+ 	</insert>
+ 	
+ 	 <insert id="saveTaskTag" parameterType="java.util.List">
+    	insert into tk_tag_task (`task_id`, `user_id`, `tag_name`, `color`, `type`, `tag_id`, `create_time`)
+    	values
+    	<foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.taskId},#{item.userid},#{item.name},#{item.color},#{item.permissions},#{item.tagId},'2000-1-1 1:1:1')  
+	    </foreach> 
+    </insert>
+ 	
+ 	  <select id="findTagsCount" resultType="java.lang.Integer">
+        select count(*) from tk_my_tag where corp_id=#{corpId}
+    </select>
+    <select id="syncSysTag" resultType="java.lang.Integer">
+        select count(*) from tk_tag_task where task_id=#{taskId} and tag_id=#{tagId}
+    </select>
+    
+</mapper>

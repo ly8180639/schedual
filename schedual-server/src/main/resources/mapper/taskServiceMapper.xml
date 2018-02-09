@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.schedual.server.dao.tkset.TaskServiceDao">
+    <select id="findAllCount" resultType="java.lang.Integer">
+        select count(*) from tk_schedule_service
+    </select>
+    
+    <select id="findAll" resultType="taskService">
+        select * from tk_schedule_service
+    </select>
+    
+    <select id="findById" resultType="taskService">
+        select * from tk_schedule_service where id=#{id}
+    </select>
+    
+    <!-- 新增一条调用日志 -->
+    <insert id="saveInitTaskService" useGeneratedKeys="true" keyProperty="tmpServiceId"  parameterType="task">
+    	INSERT INTO `tk_schedule_service` (`tid`,`scheduelname`, `clientid`, `service`, `status`,`errmsg`, `invoketime`) VALUES (#{id},#{scheduelname}, #{clientid}, #{service}, #{status},#{errmsg}, now());
+    </insert>
+    
+	<!-- 日志确认（客户端收到）更新状态status -->
+    <update id="updateServiceStatus">
+    	update tk_schedule_service set status=#{status},errmsg=#{errmsg},clientrectime=#{clientrectime} where id=#{id}
+    </update>
+    
+    
+    <insert id="saveOldTaskRel" parameterType="java.util.List">
+    	insert into old_taskid_relation (old_taskid,new_taskid)
+    	values
+    	<foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.oldTaskId},#{item.newTaskId})  
+	    </foreach> 
+    </insert>
+    
+    <insert id="saveOldTagRel" parameterType="java.util.Map">
+    	insert into old_tagid_relation(old_tagid,new_tagid) values(#{oldTagId},#{newTagId})
+    </insert>
+ 	
+ 	<insert id="saveOldSortRel" parameterType="java.util.Map">
+    	insert into old_sortid_relation(old_sortid,new_sortid) values(#{oldSortId},#{newSortId})
+    </insert>
+ 	<insert id="saveOldCommentRel" parameterType="java.util.Map">
+    	insert into old_dynid_relation(old_dynid,new_dynid) values(#{oldId},#{newId})
+    </insert>
+ 	
+ 	
+ 	<resultMap id="getRelResult"   type="java.util.Map">  
+	    <result property="key" column="oldId" />  
+	    <result property="value" column="newId" />  
+	</resultMap>  
+ 	<select id="getAllTagIdRel" resultMap="getRelResult">  
+	SELECT old_tagid oldId,new_tagid newId  
+	  FROM old_tagid_relation
+	</select>
+	<select id="getAllTaskIdRel" resultMap="getRelResult">  
+	SELECT old_taskid oldId,new_taskid newId  
+	  FROM old_taskid_relation
+	</select>
+	
+	<select id="getAllCommentIdRel" resultMap="getRelResult">  
+	SELECT old_dynid oldId,new_dynid newId  
+	  FROM old_dynid_relation
+	</select>
+	
+	<select id="getAllSortIdRel" resultMap="getRelResult">  
+		SELECT old_sortid oldId,new_sortid newId  
+		  FROM old_sortid_relation
+	</select>
+</mapper>
